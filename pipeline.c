@@ -7,17 +7,9 @@
 
 
 pthread_mutex_t if_id_mlock;
-IF_ID_Register if_id_register;
-
 pthread_mutex_t id_ex_mlock;
-ID_EX_Register id_ex_register;
-
 pthread_mutex_t ex_mem_mlock;
-EX_MEM_Register ex_mem_register;
-
 pthread_mutex_t mem_wb_mlock;
-MEM_WB_Register mem_wb_register;
-
 
 pthread_mutex_t reset_mlock;
 int reset_signal;
@@ -47,7 +39,7 @@ void pipe_inst_fetch(CPU* const cpu) {
 
   // write to pipeline register
   pthread_mutex_lock(&if_id_mlock);
-  if_id_register = regis;
+  cpu->if_id_register = regis;
   pthread_mutex_unlock(&if_id_mlock);
 }
 
@@ -59,7 +51,7 @@ void pipe_inst_decode(CPU* const cpu) {
   ID_EX_Register regis;
 
   pthread_mutex_lock(&if_id_mlock);
-  IF_ID_Register prev_regis = if_id_register;
+  IF_ID_Register prev_regis = cpu->if_id_register;
   pthread_mutex_unlock(&if_id_mlock);
 
   regis.opecode = prev_regis.inst.opecode;
@@ -72,7 +64,7 @@ void pipe_inst_decode(CPU* const cpu) {
   wait_for_reset_signal();
 
   pthread_mutex_lock(&id_ex_mlock);
-  id_ex_register = regis;
+  cpu->id_ex_register = regis;
   pthread_mutex_unlock(&id_ex_mlock);
 }
 
@@ -80,7 +72,7 @@ void pipe_execute(CPU* const cpu) {
   ID_EX_Register regis;
 
   pthread_mutex_lock(&id_ex_mlock);
-  regis = id_ex_register;
+  regis = cpu->id_ex_register;
   pthread_mutex_unlock(&id_ex_mlock);
 
   // Check pipeline forwardings
@@ -90,11 +82,11 @@ void pipe_execute(CPU* const cpu) {
   MEM_WB_Register mem_wb;
 
   pthread_mutex_lock(&ex_mem_mlock);
-  ex_mem = ex_mem_register;
+  ex_mem = cpu->ex_mem_register;
   pthread_mutex_unlock(&ex_mem_mlock);
 
   pthread_mutex_lock(&mem_wb_mlock);
-  mem_wb = mem_wb_register;
+  mem_wb = cpu->mem_wb_register;
   pthread_mutex_unlock(&mem_wb_mlock);
 
   Word reg1_value, reg2_value;
@@ -130,7 +122,7 @@ void pipe_execute(CPU* const cpu) {
   wait_for_reset_signal();
 
   pthread_mutex_lock(&ex_mem_mlock);
-  ex_mem_register = next_reg;
+  cpu->ex_mem_register = next_reg;
   pthread_mutex_unlock(&ex_mem_mlock);
 }
 
@@ -138,7 +130,7 @@ void pipe_momacc(CPU* const cpu) {
   EX_MEM_Register prev_regis;
 
   pthread_mutex_lock(&ex_mem_mlock);
-  prev_regis = ex_mem_register ;
+  prev_regis = cpu->ex_mem_register ;
   pthread_mutex_unlock(&ex_mem_mlock);
 
   memory_inst(cpu, prev_regis.opecode, prev_regis.address, prev_regis.result);
@@ -151,7 +143,7 @@ void pipe_momacc(CPU* const cpu) {
   wait_for_reset_signal();
 
   pthread_mutex_lock(&mem_wb_mlock);
-  mem_wb_register = regis;
+  cpu->mem_wb_register = regis;
   pthread_mutex_unlock(&mem_wb_mlock);
 }
 
@@ -159,7 +151,7 @@ void pipe_wb(CPU* const cpu) {
   MEM_WB_Register prev_regis;
 
   pthread_mutex_lock(&mem_wb_mlock);
-  prev_regis = mem_wb_register;
+  prev_regis = cpu->mem_wb_register;
   pthread_mutex_unlock(&mem_wb_mlock);
 
   access_register(cpu, prev_regis.dest_reg)->raw = prev_regis.result;

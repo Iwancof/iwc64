@@ -3,30 +3,23 @@
 
 #include<stdint.h>
 
+#include "common.h"
+
 #define MEMORY_SIZE 0x1000
 #define REGISTER_SIZE 16
 
-typedef union {
-  uint64_t raw;
-  struct {
-    uint64_t opecode: 14;
-    uint64_t func: 3;
-    uint64_t dest: 5;
-    uint64_t reg1: 5;
-    uint64_t reg2: 5;
-    uint64_t immediate: 32;
-  };
-} Word;
-
-typedef union {
-  uint64_t raw;
-} Register;
-
 typedef struct {
+  // Basic
   Word *memory;
   Register register_file[REGISTER_SIZE];
   uint64_t pc;
   int down;
+
+  // Pipeline registers
+  IF_ID_Register if_id_register;
+  ID_EX_Register id_ex_register;
+  EX_MEM_Register ex_mem_register;
+  MEM_WB_Register mem_wb_register;
 } CPU;
 
 int initialize_cpu(CPU* const cpu);

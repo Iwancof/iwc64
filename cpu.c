@@ -5,6 +5,7 @@
 #include "common.h"
 #include "cpu.h"
 #include "instruction.h"
+#include "pipeline.h"
 
 /// Initialize CPU memory with heap allocation.
 /// And initialize CPU registers with 0
@@ -26,6 +27,24 @@ int initialize_cpu(CPU* const cpu) {
 
   cpu->pc = 0;
   cpu->down = 0;
+
+  cpu->if_id_register.inst.raw = 0;
+
+  cpu->id_ex_register.opecode = I_NOP;
+  cpu->id_ex_register.func = 0;
+  cpu->id_ex_register.dest_reg = 0;
+  cpu->id_ex_register.reg1 = 0;
+  cpu->id_ex_register.reg2 = 0;
+  cpu->id_ex_register.immediate = 0;
+
+  cpu->ex_mem_register.opecode = I_NOP;
+  cpu->ex_mem_register.dest_reg = 0;
+  cpu->ex_mem_register.address = 0;
+  cpu->ex_mem_register.result = 0;
+  
+  cpu->mem_wb_register.opecode = I_NOP;
+  cpu->mem_wb_register.result = 0;
+  cpu->mem_wb_register.dest_reg = 0;
 
   return 0;
 }
