@@ -99,14 +99,23 @@ Register* access_register(CPU* const cpu, const uint64_t index) {
 void write_testing_program(const CPU* const cpu) {
   Word *m = cpu->memory;
 
-  m[0] = ins_3regi(I_ADD, 1, 1, 2, 3);
+  m[0] = ins_3regi(I_ADD, 1, 2, 3, 4);
   m[1] = ins_1reg(I_DEBUG, 1);
-  m[2] = ins_no_arg(I_SHUTDOWN);
+  m[2] = ins_3regi(I_SUB, 1, 1, 0, 1);
+  m[3] = ins_1reg(I_DEBUG, 1);
+  m[4] = ins_no_arg(I_SHUTDOWN);
 }
 
 Word EX_ADD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
   Word result;
-  result.raw = reg1 + reg2 + immd;
+  result.raw = reg1 + (reg2 + immd);
+
+  return result;
+}
+
+Word EX_SUB(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+  Word result;
+  result.raw = reg1 - (reg2 + immd);
 
   return result;
 }
@@ -169,6 +178,7 @@ Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1
 
   switch(opecode) {
     INCLUDE_INSTRUCTION(ADD);
+    INCLUDE_INSTRUCTION(SUB);
     INCLUDE_INSTRUCTION(SHUTDOWN);
     INCLUDE_INSTRUCTION(NOP);
     INCLUDE_INSTRUCTION(DEBUG);
