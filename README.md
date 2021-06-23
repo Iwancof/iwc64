@@ -39,12 +39,17 @@ S: Sensitive
 - NOP(no_arg)
   - 0b0000_0000_0000_00
 - SHUTDOWN(no_arg)
-  - 0b1111_1111_1111_00
+  - 0b1111_0000_0000_00
+- DEBUG(1reg)
+  - 0b1111_0000_0001_0X
+  - X: 0 --> 16進数, 1 --> 10進数
 
 ## 命令タイプ
 
 - no_arg
   - opecode
+- 1reg
+  - opecode, reg1 を使用
 - 2reg
   - opecode, dest, reg1 を使用
 - 3reg

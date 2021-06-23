@@ -43,8 +43,6 @@ void pipe_inst_fetch(CPU* const cpu) {
   word = *access_memory(cpu, cpu->pc);
   regis.inst = word;
 
-  printf("%u\n", regis.inst.opecode);
-
   wait_for_reset_signal();
 
   // write to pipeline register
@@ -121,7 +119,7 @@ void pipe_execute(CPU* const cpu) {
 
   Word result;
 
-  result = execute_inst(cpu, regis.opecode, reg1_value.raw, reg2_value.raw, regis.immediate);
+  result = execute_inst(cpu, regis.opecode, regis.func, reg1_value.raw, reg2_value.raw, regis.immediate);
   
   EX_MEM_Register next_reg;
   next_reg.address = calc_address(regis.func, reg1_value.raw, reg2_value.raw, regis.immediate);

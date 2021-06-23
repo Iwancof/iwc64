@@ -20,6 +20,7 @@ int initialize_cpu(CPU* const cpu) {
   Register init_reg;
   init_reg.raw = 0;
   for(int i = 0;i < REGISTER_SIZE;i++) {
+    init_reg.raw = i;
     cpu->register_file[i] = init_reg;
   }
 
@@ -79,34 +80,33 @@ Register* access_register(CPU* const cpu, const uint64_t index) {
 void write_testing_program(const CPU* const cpu) {
   Word *m = cpu->memory;
 
-  m[0] = ins_3regi(I_ADD, 1, 1, 2, 0);
-  m[1] = ins_no_arg(I_SHUTDOWN);
+  m[0] = ins_3regi(I_ADD, 1, 1, 2, 3);
+  m[1] = ins_1reg(I_DEBUG, 1);
+  m[2] = ins_no_arg(I_SHUTDOWN);
 }
 
-Word EX_ADD(CPU* const cpu, uint64_t reg1, uint64_t reg2, uint64_t immd) {
+Word EX_ADD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
   Word result;
   result.raw = reg1 + reg2 + immd;
 
   return result;
 }
 
-Word EX_LOAD_WORD(CPU* const cpu, uint64_t reg1, uint64_t reg2, uint64_t immd) {
+Word EX_LOAD_WORD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
   Word result;
   result.raw = 0;
 
   return result;
 }
 
-Word EX_STORE_WORD(CPU* const cpu, uint64_t reg1, uint64_t reg2, uint64_t immd) {
+Word EX_STORE_WORD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
   Word result;
   result.raw = reg1;
 
   return result;
 }
 
-Word EX_SHUTDOWN(CPU* const cpu, uint64_t reg1, uint64_t reg2, uint64_t immd) {
-  puts("SHUTDOWN");
-
+Word EX_SHUTDOWN(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
   cpu->down = 1;
   Word result;
   result.raw = 0;
@@ -114,8 +114,7 @@ Word EX_SHUTDOWN(CPU* const cpu, uint64_t reg1, uint64_t reg2, uint64_t immd) {
   return result;
 }
 
-Word EX_NOP(CPU* const cpu, uint64_t reg1, uint64_t reg2, uint64_t immd) {
-  puts("NOP");
+Word EX_NOP(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
   Word result;
   result.raw = 0;
   return result;
@@ -123,17 +122,37 @@ Word EX_NOP(CPU* const cpu, uint64_t reg1, uint64_t reg2, uint64_t immd) {
 
 #define INCLUDE_INSTRUCTION(name) \
   case I_##name: { \
-    result = EX_##name(cpu, reg1, reg2, immd); \
+                   printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
+    result = EX_##name(cpu, func, reg1, reg2, immd); \
                    break; \
                  }
+Word EX_DEBUG(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+  Word result;
+  result.raw = 0;
 
-Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t reg1, uint64_t reg2, uint64_t immd) {
+  switch(funct & 1) {
+    case 0: {
+      printf("%lx\n", reg1); 
+      break;
+    }
+    case 1: {
+      printf("%lx\n", reg1);
+    }
+
+
+  }
+
+  return result;
+}
+
+Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1, uint64_t reg2, uint64_t immd) {
   Word result;
 
   switch(opecode) {
     INCLUDE_INSTRUCTION(ADD);
     INCLUDE_INSTRUCTION(SHUTDOWN);
     INCLUDE_INSTRUCTION(NOP);
+    INCLUDE_INSTRUCTION(DEBUG);
     default: {
                char msg[256];
                sprintf(msg, "Invalid instruction. opecode = %lu", opecode);

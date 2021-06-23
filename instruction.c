@@ -1,14 +1,22 @@
 #include "cpu.h"
 #include "instruction.h"
 
-Word from_raw(uint64_t raw) {
+Word from_raw(const uint64_t raw) {
   Word ret;
   ret.raw = raw;
 
   return ret;
 }
 
-Word ins_2reg(uint64_t opecode, uint64_t dest, uint64_t reg1) {
+Word ins_1reg(const uint64_t opecode, const uint64_t reg1) {
+  Word ret = from_raw(0);
+  ret.opecode = opecode;
+  ret.reg1 = reg1;
+
+  return ret;
+}
+
+Word ins_2reg(const uint64_t opecode, const uint64_t dest, const uint64_t reg1) {
   Word ret = from_raw(0);
   ret.opecode = opecode;
   ret.dest = dest;
@@ -17,7 +25,7 @@ Word ins_2reg(uint64_t opecode, uint64_t dest, uint64_t reg1) {
   return ret;
 }
 
-Word ins_3reg(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2) {
+Word ins_3reg(const uint64_t opecode, const uint64_t dest, const uint64_t reg1, const uint64_t reg2) {
   Word ret = from_raw(0);
   ret.opecode = opecode;
   ret.dest = dest;
@@ -27,7 +35,7 @@ Word ins_3reg(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2) {
   return ret;
 }
 
-Word ins_2regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t imm) {
+Word ins_2regi(const uint64_t opecode, const uint64_t dest, const uint64_t reg1, const uint64_t imm) {
   Word ret = from_raw(0);
   ret.opecode = opecode;
   ret.dest = dest;
@@ -37,7 +45,7 @@ Word ins_2regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t imm) {
   return ret;
 }
 
-Word ins_3regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2, uint64_t imm) {
+Word ins_3regi(const uint64_t opecode, const uint64_t dest, const uint64_t reg1, const uint64_t reg2, const uint64_t imm) {
   Word ret = from_raw(0);
   ret.opecode = opecode;
   ret.dest = dest;
@@ -48,6 +56,6 @@ Word ins_3regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2, ui
   return ret;
 }
 
-Word ins_no_arg(uint64_t opecode) {
+Word ins_no_arg(const uint64_t opecode) {
   return from_raw(opecode);
 };

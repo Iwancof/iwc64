@@ -12,8 +12,12 @@
 #define I_STORE_WORD        0b00000001000100
 
 #define I_NOP               0b00000000000000
-#define I_SHUTDOWN          0b11111111111100
+#define I_SHUTDOWN          0b11110000000000
+#define I_DEBUG             0b11110000000100
 
+#define INST_MASK           0b11111111111100
+
+Word ins_1reg(uint64_t opecode, uint64_t reg1);
 Word ins_2reg(uint64_t opecode, uint64_t dest, uint64_t reg1);
 Word ins_3reg(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2);
 Word ins_2regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t imm);
