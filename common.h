@@ -4,6 +4,7 @@
 #include<stdint.h>
 
 void die_with_error(const char* const msg);
+void show_menu(const char* const pn);
 
 typedef union {
   uint64_t raw;

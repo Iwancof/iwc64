@@ -1,19 +1,51 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<unistd.h>
 
 #include "common.h"
 #include "cpu.h"
 #include "pipeline.h"
 
-void die_with_error(const char* const msg) {
-  fprintf(stderr, "error occured. msg = %s\n", msg);
-  exit(-1);
-}
-
 static uint64_t code_start = 0;
 // static uint64_t data_start = 0;
 
-int main() {
+int main(int argc, char* argv[]) {
+  int spec_flag = 0;
+  int test_flag = 0;
+  const char* program_name = NULL;
+
+
+  int opt; 
+  while((opt = getopt(argc, argv, "t:")) != -1) {
+    switch(opt) {
+      case 'r': {
+        spec_flag = 1;
+        program_name = optarg;
+        break;
+      }
+      case 't': {
+        spec_flag = 1;
+        test_flag = 1;
+
+        program_name = optarg;
+        break;
+      }
+      case '?': {
+        show_menu(argv[0]);
+        exit(-1);
+      }
+    }
+  }
+
+  if(!spec_flag) {
+    show_menu(argv[0]);
+    exit(-1);
+  }
+
+ 
+
+
+
   CPU cpu;
 
   if(initialize_cpu(&cpu)) {
