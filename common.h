@@ -3,7 +3,7 @@
 
 #include<stdint.h>
 
-void die_with_error(const char* const msg);
+void die_with_error(const char* const format, ...);
 void show_menu(const char* const pn);
 
 typedef union {

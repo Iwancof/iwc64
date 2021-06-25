@@ -78,9 +78,7 @@ int initialize_memory_and_check(const CPU* const cpu) {
 
 Word* access_memory(CPU* const cpu, const uint64_t addr) {
   if(addr < 0 || MEMORY_SIZE <= addr) {
-    char msg[256];
-    sprintf(msg, "Access to out of memory. addr = 0x%lx", addr);
-    die_with_error(msg);
+    die_with_error("Access to out of memory. addr = 0x%lx", addr);
   }
   return &cpu->memory[addr];
 }

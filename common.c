@@ -7,8 +7,9 @@
 
 #include "common.h"
 
-void die_with_error(const char* const msg) {
-  fprintf(stderr, "error occured. msg = %s\n", msg);
+void die_with_error(const char* const format, ...) {
+  va_list ap;
+  vfprintf(stderr, format, ap);
   exit(-1);
 }
 
