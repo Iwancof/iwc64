@@ -2,9 +2,9 @@
 #define INCLUDED_COMMON_H
 
 #include<stdint.h>
+#include<unistd.h>
 
-void die_with_error(const char* const format, ...);
-void show_menu(const char* const pn);
+#include "norn.h"
 
 typedef union {
   uint64_t raw;
@@ -47,5 +47,15 @@ typedef struct {
   uint64_t result: 64;
   uint64_t dest_reg: 5;
 } MEM_WB_Register;
+
+typedef struct {
+  char* program;
+  size_t program_size;
+  NornHeader *header;
+} ProgramData;
+
+void die_with_error(const char* const format, ...);
+void show_menu(const char* const pn);
+ProgramData open_program(const char* const filename, const int test_enable);
 
 #endif

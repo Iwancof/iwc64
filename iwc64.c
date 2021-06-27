@@ -14,9 +14,8 @@ int main(int argc, char* argv[]) {
   int test_flag = 0;
   const char* program_name = NULL;
 
-
   int opt; 
-  while((opt = getopt(argc, argv, "t:")) != -1) {
+  while((opt = getopt(argc, argv, "r:t:")) != -1) {
     switch(opt) {
       case 'r': {
         spec_flag = 1;
@@ -42,9 +41,7 @@ int main(int argc, char* argv[]) {
     exit(-1);
   }
 
- 
-
-
+  ProgramData prog = open_program(program_name, test_flag);
 
   CPU cpu;
 
@@ -55,7 +52,11 @@ int main(int argc, char* argv[]) {
     die_with_error("Could not initialize CPU memory");
   }
 
-  write_testing_program(&cpu);
+  // write_testing_program(&cpu);
+  load_program(&cpu, prog);
+  
+
+
   cpu.pc = code_start;
 
   while(!cpu.down) {

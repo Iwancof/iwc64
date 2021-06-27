@@ -26,7 +26,9 @@ int initialize_cpu(CPU* const cpu);
 int initialize_memory_and_check(const CPU* const cpu);
 Word* access_memory(CPU* const cpu, const uint64_t addr);
 Register* access_register(CPU* const cpu, const uint64_t index);
-void write_testing_program(const CPU* const cpu);
+void write_testing_program(CPU* const cpu);
+void load_program(CPU* const cpu, ProgramData prog);
+
 Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1, uint64_t reg2, uint64_t immd);
 uint64_t calc_address(uint64_t func, uint64_t reg1, uint64_t reg2, uint64_t immd);
 Word memory_inst(CPU* const cpu, uint64_t opecode, uint64_t address, uint64_t value);
