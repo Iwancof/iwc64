@@ -1,6 +1,6 @@
 #include<stdlib.h>
 #include<stdio.h>
-
+#include<string.h>
 
 #include "common.h"
 #include "cpu.h"
@@ -103,7 +103,12 @@ void write_testing_program(CPU* const cpu) {
 }
 
 void load_program(CPU* const cpu, ProgramData prog) {
+  char* buf = (char*)&cpu->memory[0];
+  memcpy(buf, &prog.program[prog.header->n_text_start_offset], prog.header->n_text_size);
 
+  buf += prog.header->n_text_size;
+
+  memcpy(buf, &prog.program[prog.header->n_rodata_start_offset], prog.header->n_rodata_size);
 }
 
 Word EX_ADD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
