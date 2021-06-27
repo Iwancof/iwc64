@@ -4,6 +4,7 @@
 #include<stdarg.h>
 #include<string.h>
 #include<fcntl.h>
+#include<errno.h>
 
 #include "common.h"
 #include "norn.h"
@@ -15,6 +16,7 @@ void die_with_error(const char* const format, ...) {
 
   vfprintf(stderr, format, ap);
   puts("");
+  fprintf(stderr, "errno: %d\n", errno);
 
   va_end(ap);
 
@@ -56,10 +58,10 @@ char* open_binary(const char* const filename, size_t* const size) {
   int fd = open(filename, O_RDONLY);
 
   if(fd == -1) {
-    die_with_error("Can't open file %p\n", filename);
+    die_with_error("Can't open file %s (open)", filename);
   }
 
-  const size_t max_contents_size = 0x1000;
+  const size_t max_contents_size = 0x10000;
 
   char* ptr;
   if((ptr = (char*)malloc(sizeof(char) * max_contents_size)) == NULL) {
@@ -71,6 +73,8 @@ char* open_binary(const char* const filename, size_t* const size) {
   if((ptr = (char*)realloc(ptr, *size)) == NULL) {
     die_with_error("realloc error");
   }
+
+  close(fd);
 
   return ptr;
 }
@@ -100,4 +104,51 @@ ProgramData open_program(const char* const filename, const int test_enable) {
   return prog;
 }
 
+void write_program(const char* const filename, const ProgramData prog) {
+  FILE* file = fopen(filename, "wb");
+
+  if(!file) {
+    die_with_error("Can't open file. %s (write)", filename);
+  }
+
+  size_t size;
+  if((size = fwrite(prog.program, sizeof(char), prog.program_size, file)) != prog.program_size) {
+    die_with_error("Can't write program. written size = %ld", size);
+  }
+
+  fclose(file);
+}
+
+ProgramData assemble_program(const char* const text, const size_t text_size, const char* const rodata, const size_t rodata_size) {
+  ProgramData ret;
+  const size_t program_size = 0x1000;
+
+  ret.program = (char*)malloc(sizeof(char) * program_size);
+  ret.header = (NornHeader*)ret.program;
+  ret.program_size = program_size;
+
+  if(text == NULL) {
+    die_with_error(".text is null");
+  }
+
+  char* buf = (char*)(ret.header + 1);
+  memcpy(buf, text, text_size);
+  ret.header->n_text_start_offset = buf - ret.program;
+  ret.header->n_text_size = text_size;
+
+  buf += text_size;
+
+  if(rodata == NULL) {
+    ret.header->n_rodata_start_offset = 0;
+    ret.header->n_rodata_size = 0;
+  } else {
+    memcpy(buf, rodata, rodata_size);
+    buf += rodata_size;
+
+    ret.header->n_text_start_offset = buf - ret.program;
+    ret.header->n_text_size = rodata_size;
+  }
+
+  return ret;
+}
 

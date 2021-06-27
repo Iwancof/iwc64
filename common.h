@@ -4,8 +4,7 @@
 #include<stdint.h>
 #include<unistd.h>
 
-#include "norn.h"
-
+#include "norn.h" 
 typedef union {
   uint64_t raw;
   struct {
@@ -55,7 +54,10 @@ typedef struct {
 } ProgramData;
 
 void die_with_error(const char* const format, ...);
+void show_option(const char* const cmd, const char* const desc);
 void show_menu(const char* const pn);
 ProgramData open_program(const char* const filename, const int test_enable);
+void write_program(const char* const filename, const ProgramData prog);
+ProgramData assemble_program(const char* const text, const size_t text_size, const char* const rodata, const size_t rodata_size);
 
 #endif
