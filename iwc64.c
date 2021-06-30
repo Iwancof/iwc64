@@ -74,8 +74,6 @@ int main(int argc, char* argv[]) {
     pipe_execute(&cpu);
     pipe_inst_decode(&cpu);
     pipe_inst_fetch(&cpu);
-
-    cpu.pc += sizeof(Word);
   }
 }
 

@@ -13,6 +13,8 @@
 #define I_LOAD_WORD         0b00000001000000
 #define I_STORE_WORD        0b00000001000100
 
+#define I_JUMP              0b00000010000000
+
 #define I_NOP               0b00000000000000
 #define I_SHUTDOWN          0b11110000000000
 #define I_DEBUG             0b11110000000100

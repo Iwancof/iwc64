@@ -104,7 +104,7 @@ void load_program(CPU* const cpu, ProgramData prog) {
 }
 
 #define EXE_FUNC_DECL(name) \
-  Word EX_##name(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd)
+  Word EX_##name(CPU* const cpu, const uint64_t opecode, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd)
 
 EXE_FUNC_DECL(ADD) {
   Word result;
@@ -179,17 +179,24 @@ EXE_FUNC_DECL(DIV_ADD) {
   return result;
 }
 
+EXE_FUNC_DECL(JUMP) {
+  Word result;
+  result.raw = 0;
+
+  return result;
+}
+
 #define INST_WITH_RESULT(name) \
   case I_##name: { \
     printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
-    result = EX_##name(cpu, func, reg1, reg2, immd); \
+    result = EX_##name(cpu, opecode, func, reg1, reg2, immd); \
     cpu->ex_mem_register.enable_forwarding = 1; \
     break; \
   }
 #define IGNORE_RESULT(name) \
   case I_##name: { \
     printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
-    result = EX_##name(cpu, func, reg1, reg2, immd); \
+    result = EX_##name(cpu, opecode, func, reg1, reg2, immd); \
     break; \
   }
 
@@ -199,7 +206,7 @@ Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1
   cpu->ex_mem_register.enable_forwarding = 0;
   Word result;
 
-  switch(opecode) {
+  switch(opecode & INST_MASK) {
     INST_WITH_RESULT(ADD);
     INST_WITH_RESULT(SUB);
     INST_WITH_RESULT(SHUTDOWN);
@@ -209,6 +216,7 @@ Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1
     INST_WITH_RESULT(DIV_ADD)
     IGNORE_RESULT(LOAD_WORD);
     IGNORE_RESULT(STORE_WORD);
+    IGNORE_RESULT(JUMP);
     default: {
       die_with_error("Invalid instruction. opecode = %lu", opecode);
     }
@@ -233,13 +241,18 @@ uint64_t calc_address(uint64_t func, uint64_t reg1, uint64_t reg2, uint64_t immd
   return (uint64_t)-1;
 }
 
-Word MM_LOAD_WORD(CPU* const cpu, uint64_t address, Word value) {
+#define MEM_FUNC_DECL(name) \
+  Word MM_##name(CPU* const cpu, const uint64_t opecode, const uint64_t address, const Word value)
+
+//Word MM_LOAD_WORD(CPU* const cpu, uint64_t address, Word value) {
+MEM_FUNC_DECL(LOAD_WORD) {
   // Word w = *access_memory(cpu, address);
   // printf("Access by load %lx\n", w.raw);
   return *access_memory(cpu, address);
 }
 
-Word MM_STORE_WORD(CPU* const cpu, uint64_t address, Word value) {
+//Word MM_STORE_WORD(CPU* const cpu, uint64_t address, Word value) {
+MEM_FUNC_DECL(STORE_WORD) {
   *access_memory(cpu, address) = value;
 
   Word result;
@@ -247,9 +260,18 @@ Word MM_STORE_WORD(CPU* const cpu, uint64_t address, Word value) {
   return result;
 }
 
+MEM_FUNC_DECL(JUMP) {
+  Word result;
+  result.raw = cpu->pc;
+
+  cpu->pc = address;
+
+  return result;
+}
+
 #define INCLUDE_MEM_INSTRUCTION(name) \
   case I_##name: { \
-    result = MM_##name(cpu, address, word); \
+    result = MM_##name(cpu, opecode, address, word); \
     cpu->mem_wb_register.enable_forwarding = 1; \
     break; \
   }
@@ -259,9 +281,10 @@ Word memory_inst(CPU* const cpu, uint64_t opecode, uint64_t address, uint64_t va
   Word word, result;
   word.raw = value;
 
-  switch(opecode) {
+  switch(opecode & INST_MASK) {
     INCLUDE_MEM_INSTRUCTION(LOAD_WORD);
     INCLUDE_MEM_INSTRUCTION(STORE_WORD);
+    INCLUDE_MEM_INSTRUCTION(JUMP);
     default: {
       result.raw = word.raw;
       break;

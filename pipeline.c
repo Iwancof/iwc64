@@ -33,6 +33,7 @@ void pipe_inst_fetch(CPU* const cpu) {
   Word word;
 
   word = *access_memory(cpu, cpu->pc);
+  cpu->pc += sizeof(Word);
   regis.inst = word;
 
   wait_for_reset_signal();
