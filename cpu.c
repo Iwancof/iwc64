@@ -82,7 +82,7 @@ Word* access_memory(CPU* const cpu, const uint64_t addr) {
   if(addr < 0 || MEMORY_SIZE <= addr) {
     die_with_error("Access to out of memory. addr = 0x%lx", addr);
   }
-  return &cpu->memory[addr];
+  return (Word*)&((char*)cpu->memory)[addr];
 }
 
 Register* access_register(CPU* const cpu, const uint64_t index) {

@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
   for(int i = 0; i < 0x10;i++) {
     for(int j = 0;j < 8;j++) {
       // Word w = cpu.memory[i * 8 + j];
-      Word w = *access_memory(&cpu, i * 8 + j);
+      Word w = *access_memory(&cpu, (i * 8 + j) * sizeof(Word));
       printf("%.16lx ", w.raw);
     }
     puts("");
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     pipe_inst_decode(&cpu);
     pipe_inst_fetch(&cpu);
 
-    cpu.pc += 1;
+    cpu.pc += sizeof(Word);
   }
 }
 
