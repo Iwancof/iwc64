@@ -35,30 +35,39 @@ reg2: 5
 S: Sensitive 
 
 ### 算術
-- ADD(3reg)
+- ADD(dabi)
   - 0b0000_0000_0001_00
-- SUB(3reg)
+- SUB(dabi)
   - 0b0000_0000_0010_00
+- MUL_ADD(dabi)
+  - 0b0000_0000_0011_00
+- DIV_ADD(dabi)
+  - 0b0000_0000_0100_00
 
 ### メモリ
-- LOAD
+- LOAD(fdai)
+  - 0b0000_0001_0000_00
+- STORE(fdabi)
+  - 0b0000_0001_0001_00
 
 ### システム
-- NOP(no_arg)
+- NOP(none)
   - 0b0000_0000_0000_00
-- SHUTDOWN(no_arg)
+- SHUTDOWN(none)
   - 0b1111_0000_0000_00
-- DEBUG(1reg)
+- DEBUG(a)
   - 0b1111_0000_0001_0X
   - X: 0 --> 16進数, 1 --> 10進数
 
 ## 命令タイプ
 
-- no_arg
+(f)d/a/b(i) | none
+
+- none
   - opecode
-- 1reg
+- a
   - opecode, reg1 を使用
-- 2reg
+- da
   - opecode, dest, reg1 を使用
-- 3reg
+- dab
   - opecode, dest, reg1, reg2 を使用
