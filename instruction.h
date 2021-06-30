@@ -7,6 +7,8 @@
 
 #define I_ADD               0b00000000000100
 #define I_SUB               0b00000000001000
+#define I_MUL_ADD           0b00000000001100
+#define I_DIV_ADD           0b00000000010000
 
 #define I_LOAD_WORD         0b00000001000000
 #define I_STORE_WORD        0b00000001000100
@@ -17,12 +19,15 @@
 
 #define INST_MASK           0b11111111111100
 
-Word ins_1reg(uint64_t opecode, uint64_t reg1);
-Word ins_2reg(uint64_t opecode, uint64_t dest, uint64_t reg1);
-Word ins_3reg(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2);
-Word ins_2regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t imm);
-Word ins_3regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2, uint64_t imm);
-Word ins_no_arg(uint64_t opecode);
-Word ins_2regfi(uint64_t opecode, uint64_t func, uint64_t dest, uint64_t reg1, uint64_t imm);
+Word from_raw(const uint64_t raw);
+Word ins_a(const uint64_t opecode, const uint64_t a);
+Word ins_di(const uint64_t opecode, const uint64_t dest, const uint64_t imm);
+Word ins_da(const uint64_t opecode, const uint64_t dest, const uint64_t a);
+Word ins_dab(const uint64_t opecode, const uint64_t dest, const uint64_t reg1, const uint64_t reg2);
+Word ins_dai(const uint64_t opecode, const uint64_t dest, const uint64_t reg1, const uint64_t imm);
+Word ins_dabi(const uint64_t opecode, const uint64_t dest, const uint64_t reg1, const uint64_t reg2, const uint64_t imm);
+Word ins_fdai(const uint64_t opecode, const uint64_t func, const uint64_t dest, const uint64_t reg1, const uint64_t imm);
+Word ins_none(const uint64_t opecode);
+Word ins_fabi(const uint64_t opecode, const uint64_t func, const uint64_t a, const uint64_t b, const uint64_t imm);
 
 #endif

@@ -1,0 +1,44 @@
+add_shutdown
+
+text[0] = ins_3regi(I_ADD, 1, 0, 0, 10);
+text[1] = ins_1reg(I_DEBUG, 1);
+text[2] = ins_no_arg(I_SHUTDOWN);
+
+
+forwarding_shutdown
+
+text[0] = ins_3regi(I_ADD, 1, 0, 0, 0x3);
+text[1] = ins_3regi(I_ADD, 1, 1, 0, 0x4);
+text[2] = ins_1reg(I_DEBUG, 1);
+text[3] = ins_no_arg(I_SHUTDOWN);
+
+
+memory access
+
+text[0] = ins_2regfi(I_LOAD_WORD, 0, 1, 0, 0x200);
+text[1] = ins_1reg(I_DEBUG, 1);
+text[2] = ins_no_arg(I_SHUTDOWN);
+
+
+load and store
+
+text[0] = ins_fdai(I_LOAD_WORD, 0, 1, 0, 0x200);
+text[1] = ins_a(I_DEBUG, 1);
+text[2] = ins_dabi(I_ADD, 1, 1, 0, 1);
+text[3] = ins_fabi(I_STORE_WORD, 0, 0, 1, 0x200);
+text[4] = ins_fdai(I_LOAD_WORD, 0, 1, 0, 0x200);
+text[5] = ins_a(I_DEBUG, 1);
+text[6] = ins_none(I_SHUTDOWN);
+
+
+MUL_AND_DIV
+
+text[0] = ins_di(I_ADD, 1, 0x20);
+text[1] = ins_di(I_ADD, 2, 0x2);
+text[2] = ins_dab(I_MUL_ADD, 1, 1, 2);
+text[3] = ins_a(I_DEBUG, 1); // 0x20 * 2
+text[4] = ins_di(I_ADD, 2, 0x10);
+text[5] = ins_dab(I_DIV_ADD, 1, 1, 2);
+text[6] = ins_a(I_DEBUG, 1); // 0x40 / 4
+text[7] = ins_none(I_SHUTDOWN);
+

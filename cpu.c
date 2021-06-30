@@ -94,16 +94,6 @@ Register* access_register(CPU* const cpu, const uint64_t index) {
   return &cpu->register_file[index];
 }
 
-void write_testing_program(CPU* const cpu) {
-  Word *m = cpu->memory;
-
-  m[0] = ins_3regi(I_ADD, 1, 2, 3, 4);
-  m[1] = ins_1reg(I_DEBUG, 1);
-  m[2] = ins_3regi(I_SUB, 1, 1, 0, 1);
-  m[3] = ins_1reg(I_DEBUG, 1);
-  m[4] = ins_no_arg(I_SHUTDOWN);
-}
-
 void load_program(CPU* const cpu, ProgramData prog) {
   char* buf = (char*)&cpu->memory[0];
   memcpy(buf, &prog.program[prog.header->n_text_start_offset], prog.header->n_text_size); // load .text 
@@ -113,35 +103,38 @@ void load_program(CPU* const cpu, ProgramData prog) {
   memcpy(buf, &prog.program[prog.header->n_rodata_start_offset], prog.header->n_rodata_size); // load .rodata
 }
 
-Word EX_ADD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+#define EXE_FUNC_DECL(name) \
+  Word EX_##name(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd)
+
+EXE_FUNC_DECL(ADD) {
   Word result;
   result.raw = reg1 + (reg2 + immd);
 
   return result;
 }
 
-Word EX_SUB(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+EXE_FUNC_DECL(SUB) {
   Word result;
   result.raw = reg1 - (reg2 + immd);
 
   return result;
 }
 
-Word EX_LOAD_WORD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+EXE_FUNC_DECL(LOAD_WORD) {
   Word result;
   result.raw = 0;
 
   return result;
 }
 
-Word EX_STORE_WORD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+EXE_FUNC_DECL(STORE_WORD) {
   Word result;
-  result.raw = reg1;
+  result.raw = reg2;
 
   return result;
 }
 
-Word EX_SHUTDOWN(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+EXE_FUNC_DECL(SHUTDOWN) {
   cpu->down = 1;
   Word result;
   result.raw = 0;
@@ -149,28 +142,13 @@ Word EX_SHUTDOWN(CPU* const cpu, const uint64_t funct, const uint64_t reg1, cons
   return result;
 }
 
-Word EX_NOP(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+EXE_FUNC_DECL(NOP) {
   Word result;
   result.raw = 0;
   return result;
 }
 
-#define INCLUDE_INSTRUCTION(name) \
-  case I_##name: { \
-    printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
-    result = EX_##name(cpu, func, reg1, reg2, immd); \
-    cpu->ex_mem_register.enable_forwarding = 1; \
-    break; \
-  }
-#define IGNORE_INSTRUCTION(name) \
-  case I_##name: { \
-    printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
-    result.raw = 0; \
-    break; \
-  }
-
-
-Word EX_DEBUG(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
+EXE_FUNC_DECL(DEBUG) {
   Word result;
   result.raw = 0;
 
@@ -187,18 +165,50 @@ Word EX_DEBUG(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const u
   return result;
 }
 
+EXE_FUNC_DECL(MUL_ADD) {
+  Word result;
+  result.raw = reg1 * reg2 + immd;
+
+  return result;
+}
+
+EXE_FUNC_DECL(DIV_ADD) {
+  Word result;
+  result.raw = reg1 / reg2 + immd;
+
+  return result;
+}
+
+#define INST_WITH_RESULT(name) \
+  case I_##name: { \
+    printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
+    result = EX_##name(cpu, func, reg1, reg2, immd); \
+    cpu->ex_mem_register.enable_forwarding = 1; \
+    break; \
+  }
+#define IGNORE_RESULT(name) \
+  case I_##name: { \
+    printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
+    result = EX_##name(cpu, func, reg1, reg2, immd); \
+    break; \
+  }
+
+
+
 Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1, uint64_t reg2, uint64_t immd) {
   cpu->ex_mem_register.enable_forwarding = 0;
   Word result;
 
   switch(opecode) {
-    INCLUDE_INSTRUCTION(ADD);
-    INCLUDE_INSTRUCTION(SUB);
-    INCLUDE_INSTRUCTION(SHUTDOWN);
-    INCLUDE_INSTRUCTION(NOP);
-    INCLUDE_INSTRUCTION(DEBUG);
-    IGNORE_INSTRUCTION(LOAD_WORD);
-    IGNORE_INSTRUCTION(STORE_WORD);
+    INST_WITH_RESULT(ADD);
+    INST_WITH_RESULT(SUB);
+    INST_WITH_RESULT(SHUTDOWN);
+    INST_WITH_RESULT(NOP);
+    INST_WITH_RESULT(DEBUG);
+    INST_WITH_RESULT(MUL_ADD)
+    INST_WITH_RESULT(DIV_ADD)
+    IGNORE_RESULT(LOAD_WORD);
+    IGNORE_RESULT(STORE_WORD);
     default: {
       die_with_error("Invalid instruction. opecode = %lu", opecode);
     }
@@ -210,11 +220,16 @@ Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1
 
 uint64_t calc_address(uint64_t func, uint64_t reg1, uint64_t reg2, uint64_t immd) {
   switch(func) {
-  case 0: { // Direct
-            return immd;
-          }
+    case 0: { // Direct
+      return immd;
+    }
+    case 1: {
+      return reg1 + immd;
+    }
+    case 2: {
+      return (reg1 << 32) + immd;
+    }
   }
-
   return (uint64_t)-1;
 }
 
@@ -246,6 +261,7 @@ Word memory_inst(CPU* const cpu, uint64_t opecode, uint64_t address, uint64_t va
 
   switch(opecode) {
     INCLUDE_MEM_INSTRUCTION(LOAD_WORD);
+    INCLUDE_MEM_INSTRUCTION(STORE_WORD);
     default: {
       result.raw = word.raw;
       break;

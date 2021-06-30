@@ -65,9 +65,15 @@ int main(int argc, char* argv[]) {
     write_program(filename, prog);
   } else if(new_flag) {
     Word* text = (Word*)malloc(sizeof(Word) * 0x100);
-    text[0] = ins_2regfi(I_LOAD_WORD, 0, 1, 0, 0x200);
-    text[1] = ins_1reg(I_DEBUG, 1);
-    text[2] = ins_no_arg(I_SHUTDOWN);
+
+    text[0] = ins_di(I_ADD, 1, 0x20);
+    text[1] = ins_di(I_ADD, 2, 0x2);
+    text[2] = ins_dab(I_MUL_ADD, 1, 1, 2);
+    text[3] = ins_a(I_DEBUG, 1); // 0x20 * 2
+    text[4] = ins_di(I_ADD, 2, 0x10);
+    text[5] = ins_dab(I_DIV_ADD, 1, 1, 2);
+    text[6] = ins_a(I_DEBUG, 1); // 0x40 / 4
+    text[7] = ins_none(I_SHUTDOWN);
 
     char rodata[] = "ABCDEFGH";
 
