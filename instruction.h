@@ -23,5 +23,6 @@ Word ins_3reg(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2);
 Word ins_2regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t imm);
 Word ins_3regi(uint64_t opecode, uint64_t dest, uint64_t reg1, uint64_t reg2, uint64_t imm);
 Word ins_no_arg(uint64_t opecode);
+Word ins_2regfi(uint64_t opecode, uint64_t func, uint64_t dest, uint64_t reg1, uint64_t imm);
 
 #endif

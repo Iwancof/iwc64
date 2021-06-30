@@ -56,6 +56,17 @@ Word ins_3regi(const uint64_t opecode, const uint64_t dest, const uint64_t reg1,
   return ret;
 }
 
+Word ins_2regfi(const uint64_t opecode, const uint64_t func, const uint64_t dest, const uint64_t reg1, const uint64_t imm) {
+  Word ret = from_raw(0);
+  ret.opecode = opecode;
+  ret.func = func;
+  ret.dest = dest;
+  ret.reg1 = reg1;
+  ret.immediate = imm;
+
+  return ret;
+}
+
 Word ins_no_arg(const uint64_t opecode) {
   return from_raw(opecode);
 };

@@ -91,9 +91,9 @@ void pipe_execute(CPU* const cpu) {
 
   Word reg1_value, reg2_value;
   
-  if(regis.reg1 != 0 && ex_mem.dest_reg == regis.reg1) { // forwarding
+  if(regis.reg1 != 0 && ex_mem.dest_reg == regis.reg1 && ex_mem.enable_forwarding) { // forwarding
     reg1_value.raw = ex_mem.result;
-  } else if(regis.reg1 != 0 && mem_wb.dest_reg == regis.reg1) {
+  } else if(regis.reg1 != 0 && mem_wb.dest_reg == regis.reg1 && mem_wb.enable_forwarding) {
     // check MEM_WB register after checking EX_MEM register.
     // Because, the result of EX_MEM register is newly than MEM_WB one.
     reg1_value.raw = mem_wb.result;
@@ -101,9 +101,9 @@ void pipe_execute(CPU* const cpu) {
     reg1_value.raw = access_register(cpu, regis.reg1)->raw;
   }
 
-  if(regis.reg2 != 0 && ex_mem.dest_reg == regis.reg2) { // forwarding
+  if(regis.reg2 != 0 && ex_mem.dest_reg == regis.reg2 && ex_mem.enable_forwarding) { // forwarding
     reg2_value.raw = ex_mem.result;
-  } else if(regis.reg2 != 0 && mem_wb.dest_reg == regis.reg2) {
+  } else if(regis.reg2 != 0 && mem_wb.dest_reg == regis.reg2 && mem_wb.enable_forwarding) {
     reg2_value.raw = mem_wb.result;
   } else { // no forwarding
     reg2_value.raw = access_register(cpu, regis.reg2)->raw;
@@ -126,18 +126,18 @@ void pipe_execute(CPU* const cpu) {
   pthread_mutex_unlock(&ex_mem_mlock);
 }
 
-void pipe_momacc(CPU* const cpu) {
+void pipe_memacc(CPU* const cpu) {
   EX_MEM_Register prev_regis;
 
   pthread_mutex_lock(&ex_mem_mlock);
   prev_regis = cpu->ex_mem_register ;
   pthread_mutex_unlock(&ex_mem_mlock);
 
-  memory_inst(cpu, prev_regis.opecode, prev_regis.address, prev_regis.result);
+  Word memory_result = memory_inst(cpu, prev_regis.opecode, prev_regis.address, prev_regis.result);
 
   MEM_WB_Register regis;
   regis.dest_reg = prev_regis.dest_reg;
-  regis.result = prev_regis.result;
+  regis.result = memory_result.raw;
   regis.opecode = prev_regis.opecode;
 
   wait_for_reset_signal();

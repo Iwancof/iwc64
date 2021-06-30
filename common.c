@@ -143,10 +143,11 @@ ProgramData assemble_program(const char* const text, const size_t text_size, con
     ret.header->n_rodata_size = 0;
   } else {
     memcpy(buf, rodata, rodata_size);
-    buf += rodata_size;
 
-    ret.header->n_text_start_offset = buf - ret.program;
-    ret.header->n_text_size = rodata_size;
+    ret.header->n_rodata_start_offset = buf - ret.program;
+    ret.header->n_rodata_size = rodata_size;
+
+    buf += rodata_size;
   }
 
   return ret;

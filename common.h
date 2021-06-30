@@ -37,6 +37,7 @@ typedef struct {
 typedef struct {
   uint64_t opecode: 14;
   uint64_t dest_reg: 5;
+  uint64_t enable_forwarding: 1;
   uint64_t address: 64;
   uint64_t result: 64;
 } EX_MEM_Register;
@@ -45,6 +46,7 @@ typedef struct {
   uint64_t opecode: 14;
   uint64_t result: 64;
   uint64_t dest_reg: 5;
+  uint64_t enable_forwarding: 1;
 } MEM_WB_Register;
 
 typedef struct {

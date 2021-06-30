@@ -41,10 +41,12 @@ int initialize_cpu(CPU* const cpu) {
   cpu->ex_mem_register.dest_reg = 0;
   cpu->ex_mem_register.address = 0;
   cpu->ex_mem_register.result = 0;
+  cpu->ex_mem_register.enable_forwarding = 0;
   
   cpu->mem_wb_register.opecode = I_NOP;
   cpu->mem_wb_register.result = 0;
   cpu->mem_wb_register.dest_reg = 0;
+  cpu->mem_wb_register.enable_forwarding = 0;
 
   return 0;
 }
@@ -104,11 +106,11 @@ void write_testing_program(CPU* const cpu) {
 
 void load_program(CPU* const cpu, ProgramData prog) {
   char* buf = (char*)&cpu->memory[0];
-  memcpy(buf, &prog.program[prog.header->n_text_start_offset], prog.header->n_text_size);
+  memcpy(buf, &prog.program[prog.header->n_text_start_offset], prog.header->n_text_size); // load .text 
 
   buf += prog.header->n_text_size;
 
-  memcpy(buf, &prog.program[prog.header->n_rodata_start_offset], prog.header->n_rodata_size);
+  memcpy(buf, &prog.program[prog.header->n_rodata_start_offset], prog.header->n_rodata_size); // load .rodata
 }
 
 Word EX_ADD(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
@@ -155,10 +157,19 @@ Word EX_NOP(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uin
 
 #define INCLUDE_INSTRUCTION(name) \
   case I_##name: { \
-                   printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
+    printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
     result = EX_##name(cpu, func, reg1, reg2, immd); \
-                   break; \
-                 }
+    cpu->ex_mem_register.enable_forwarding = 1; \
+    break; \
+  }
+#define IGNORE_INSTRUCTION(name) \
+  case I_##name: { \
+    printf("%s, reg1 = %lx, reg2 = %lx, immd = %lx\n", #name, reg1, reg2, immd); \
+    result.raw = 0; \
+    break; \
+  }
+
+
 Word EX_DEBUG(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const uint64_t reg2, const uint64_t immd) {
   Word result;
   result.raw = 0;
@@ -171,14 +182,13 @@ Word EX_DEBUG(CPU* const cpu, const uint64_t funct, const uint64_t reg1, const u
     case 1: {
       printf("%lx\n", reg1);
     }
-
-
   }
 
   return result;
 }
 
 Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1, uint64_t reg2, uint64_t immd) {
+  cpu->ex_mem_register.enable_forwarding = 0;
   Word result;
 
   switch(opecode) {
@@ -187,11 +197,11 @@ Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1
     INCLUDE_INSTRUCTION(SHUTDOWN);
     INCLUDE_INSTRUCTION(NOP);
     INCLUDE_INSTRUCTION(DEBUG);
+    IGNORE_INSTRUCTION(LOAD_WORD);
+    IGNORE_INSTRUCTION(STORE_WORD);
     default: {
-               char msg[256];
-               sprintf(msg, "Invalid instruction. opecode = %lu", opecode);
-               die_with_error(msg);
-             }
+      die_with_error("Invalid instruction. opecode = %lu", opecode);
+    }
   }
 
   return result;
@@ -209,6 +219,8 @@ uint64_t calc_address(uint64_t func, uint64_t reg1, uint64_t reg2, uint64_t immd
 }
 
 Word MM_LOAD_WORD(CPU* const cpu, uint64_t address, Word value) {
+  // Word w = *access_memory(cpu, address);
+  // printf("Access by load %lx\n", w.raw);
   return *access_memory(cpu, address);
 }
 
@@ -222,17 +234,24 @@ Word MM_STORE_WORD(CPU* const cpu, uint64_t address, Word value) {
 
 #define INCLUDE_MEM_INSTRUCTION(name) \
   case I_##name: { \
-                   result = MM_##name(cpu, address, word); \
-                   break; \
-                 } 
+    result = MM_##name(cpu, address, word); \
+    cpu->mem_wb_register.enable_forwarding = 1; \
+    break; \
+  }
 
 Word memory_inst(CPU* const cpu, uint64_t opecode, uint64_t address, uint64_t value) {
+  cpu->mem_wb_register.enable_forwarding = 0;
   Word word, result;
   word.raw = value;
 
   switch(opecode) {
     INCLUDE_MEM_INSTRUCTION(LOAD_WORD);
+    default: {
+      result.raw = word.raw;
+      break;
+    }
   }
-
+ 
+  // printf("memory inst : %lx\n", result.raw);
   return result;
 }

@@ -54,14 +54,23 @@ int main(int argc, char* argv[]) {
 
   // write_testing_program(&cpu);
   load_program(&cpu, prog);
-  
+
+  // dump cpu info
+  for(int i = 0; i < 0x10;i++) {
+    for(int j = 0;j < 8;j++) {
+      // Word w = cpu.memory[i * 8 + j];
+      Word w = *access_memory(&cpu, i * 8 + j);
+      printf("%.16lx ", w.raw);
+    }
+    puts("");
+  }
 
 
   cpu.pc = code_start;
 
   while(!cpu.down) {
     pipe_wb(&cpu);
-    pipe_momacc(&cpu);
+    pipe_memacc(&cpu);
     pipe_execute(&cpu);
     pipe_inst_decode(&cpu);
     pipe_inst_fetch(&cpu);
