@@ -31,7 +31,7 @@ text[5] = ins_a(I_DEBUG, 1);
 text[6] = ins_none(I_SHUTDOWN);
 
 
-MUL_AND_DIV
+mul and div
 
 text[0] = ins_di(I_ADD, 1, 0x20);
 text[1] = ins_di(I_ADD, 2, 0x2);
@@ -41,4 +41,27 @@ text[4] = ins_di(I_ADD, 2, 0x10);
 text[5] = ins_dab(I_DIV_ADD, 1, 1, 2);
 text[6] = ins_a(I_DEBUG, 1); // 0x40 / 4
 text[7] = ins_none(I_SHUTDOWN);
+
+
+cmp test
+
+text[0] = ins_di(I_ADD, 2, 0);
+text[1] = ins_dabi(I_CMP, 1, 2, 0, 0);
+text[2] = ins_a(I_DEBUG, 1);
+text[3] = ins_none(I_SHUTDOWN);
+
+
+jump if equal
+
+MOV(1, 1);
+DEBUG(1);
+
+JUMP_EQ(0, 0, 0, 1, sizeof(Word) * 2);
+
+MOV(1, 0);
+NOP();
+NOP();
+NOP();
+
+SHUTDOWN();
 

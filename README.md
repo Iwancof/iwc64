@@ -53,6 +53,13 @@ S: Sensitive
 ### 制御
 - JUMP(fdai)
   - 0b0000_0010_0000_00
+  - Jump to calc(f, a, i) and old pc moves to d.
+- JUMP_EQ(fdabi)
+  - 0b0000_0010_0001_00
+  - If b is true, Jump to calc(f, a, i) and old pc moves to d 
+- CMP(dabi)
+  - 0b0000_0011_0000_00
+  - d = a == b + i
 
 ### システム
 - NOP(none)

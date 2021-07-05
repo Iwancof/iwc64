@@ -87,6 +87,19 @@ Word ins_fabi(const uint64_t opecode, const uint64_t func, const uint64_t a, con
   return ret;
 }
 
+Word ins_fdabi(const uint64_t opecode, const uint64_t func, const uint64_t dest, const uint64_t a, const uint64_t b, const uint64_t imm) {
+  Word ret = from_raw(0);
+  ret.opecode = opecode;
+  ret.func = func;
+  ret.dest = dest;
+  ret.reg1 = a;
+  ret.reg2 = b;
+  ret.immediate = imm;
+
+  return ret;
+}
+
+
 Word ins_none(const uint64_t opecode) {
   return from_raw(opecode);
 };

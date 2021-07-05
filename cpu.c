@@ -172,6 +172,13 @@ EXE_FUNC_DECL(MUL_ADD) {
   return result;
 }
 
+EXE_FUNC_DECL(CMP) {
+  Word result;
+  result.raw = reg1 == reg2 + immd;
+
+  return result;
+}
+
 EXE_FUNC_DECL(DIV_ADD) {
   Word result;
   result.raw = reg1 / reg2 + immd;
@@ -182,6 +189,13 @@ EXE_FUNC_DECL(DIV_ADD) {
 EXE_FUNC_DECL(JUMP) {
   Word result;
   result.raw = 0;
+
+  return result;
+}
+
+EXE_FUNC_DECL(JUMP_EQ) {
+  Word result;
+  result.raw = reg2;
 
   return result;
 }
@@ -214,9 +228,11 @@ Word execute_inst(CPU* const cpu, uint64_t opecode, uint64_t func, uint64_t reg1
     INST_WITH_RESULT(DEBUG);
     INST_WITH_RESULT(MUL_ADD)
     INST_WITH_RESULT(DIV_ADD)
+    INST_WITH_RESULT(CMP);
     IGNORE_RESULT(LOAD_WORD);
     IGNORE_RESULT(STORE_WORD);
     IGNORE_RESULT(JUMP);
+    IGNORE_RESULT(JUMP_EQ);
     default: {
       die_with_error("Invalid instruction. opecode = %lu", opecode);
     }
@@ -269,6 +285,18 @@ MEM_FUNC_DECL(JUMP) {
   return result;
 }
 
+MEM_FUNC_DECL(JUMP_EQ) {
+  Word result;
+  if(value.raw) {
+    result.raw = cpu->pc;
+    cpu->pc = address;
+  } else {
+    result.raw = 0;
+  }
+
+  return result;
+}
+
 #define INCLUDE_MEM_INSTRUCTION(name) \
   case I_##name: { \
     result = MM_##name(cpu, opecode, address, word); \
@@ -285,6 +313,7 @@ Word memory_inst(CPU* const cpu, uint64_t opecode, uint64_t address, uint64_t va
     INCLUDE_MEM_INSTRUCTION(LOAD_WORD);
     INCLUDE_MEM_INSTRUCTION(STORE_WORD);
     INCLUDE_MEM_INSTRUCTION(JUMP);
+    INCLUDE_MEM_INSTRUCTION(JUMP_EQ);
     default: {
       result.raw = word.raw;
       break;

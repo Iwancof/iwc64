@@ -10,6 +10,9 @@ void objdump_show_menu(const char* const pn) {
   show_option("-d BINARY", "show assembly list");
 }
 
+size_t program_writing_index = 0;
+Word *program_text;
+
 int main(int argc, char* argv[]) {
 
   int disas_flag = 0;
@@ -64,18 +67,14 @@ int main(int argc, char* argv[]) {
 
     write_program(filename, prog);
   } else if(new_flag) {
-    Word* text = (Word*)malloc(sizeof(Word) * 0x100);
+    program_text = (Word*)malloc(sizeof(Word) * 0x100);
 
-    text[0] = ins_di(I_ADD, 1, 0);
-    text[1] = ins_fdai(I_JUMP, 0, 0, 0, sizeof(Word));
-    text[2] = ins_dai(I_ADD, 1, 1, 1);
-    text[3] = ins_a(I_DEBUG, 1);
-    text[4] = ins_none(I_NOP);
-    text[5] = ins_none(I_SHUTDOWN);
+
+#include "./source.c"
 
     char rodata[] = "ABCDEFGH";
 
-    ProgramData prog =  assemble_program((char*)text, 0x40 * sizeof(Word), rodata, 8);
+    ProgramData prog =  assemble_program((char*)program_text, 0x40 * sizeof(Word), rodata, 8);
 
     prog.header->n_type = N_EXEC;
     prog.header->n_test_case_start_offset = 0;
